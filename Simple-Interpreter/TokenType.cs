@@ -8,6 +8,7 @@ namespace Simple_Interpreter
     {
         Int,
         Plus,
+        Minus,
         EOF
     }
 }
