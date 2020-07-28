@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
-
-namespace Simple_Interpreter
+﻿namespace Simple_Interpreter
 {
     class Interpreter
     {
@@ -11,11 +6,12 @@ namespace Simple_Interpreter
         private string text;
         private int pos;
         private Token currentToken;
-
+        private char currentChar;
         public Interpreter(string text)
         {
             this.text = text;
             pos = 0;
+            currentChar = text[pos];
         }
 
         public void Error()
@@ -23,38 +19,78 @@ namespace Simple_Interpreter
             throw new System.Exception("Error parsing input");
         }
 
+        public void Advance()
+        {
+            pos++;
+            if (pos > text.Length - 1)
+            {
+                currentChar = '\0';
+            }
+            else
+            {
+                currentChar = text[pos];
+            }
+        }
+
+        public void SkipWhiteSpace()
+        {
+            while (currentChar != '\0' && char.IsWhiteSpace(currentChar))
+            {
+                Advance();
+            }
+        }
+
+        public int Integer()
+        {
+            string result = string.Empty;
+            while (currentChar != '\0' && char.IsDigit(currentChar))
+            {
+                result += currentChar;
+                Advance();
+            }
+            return int.Parse(result);
+        }
+
         public Token GetNextToken()
         {
-            string temp = text;
-
-            if (pos > text.Length - 1)
-                return new Token(TokenType.EOF, null);
-
-            char currentChar = text[pos];
-
-            if (Char.IsDigit(currentChar))
+            while (currentChar != '\0')
             {
-                pos++;
-                return new Token(TokenType.Int, int.Parse(currentChar.ToString()));
+                if (char.IsWhiteSpace(currentChar))
+                {
+                    SkipWhiteSpace();
+                    continue;
+                }
+
+                if (char.IsDigit(currentChar))
+                {
+                    return new Token(TokenType.Int, Integer());
+                }
+
+                if (currentChar == '+')
+                {
+                    Advance();
+                    return new Token(TokenType.Plus, '+');
+                }
+
+                if (currentChar == '-')
+                {
+                    Advance();
+                    return new Token(TokenType.Minus, '-');
+                }
+
+                Error();
             }
 
-            if(currentChar == '+')
-            {
-                pos++;
-                return new Token(TokenType.Plus, currentChar);
-            }
-
-            Error();
-
-            return null;
+            return new Token(TokenType.EOF, null);
         }
 
         public void Eat(TokenType type)
         {
-            if(currentToken.Type == type)
+            if (currentToken.Type == type)
             {
                 currentToken = GetNextToken();
-            } else
+            }
+            else
             {
                 Error();
             }
@@ -68,12 +104,21 @@ namespace Simple_Interpreter
             Eat(TokenType.Int);
 
             Token op = currentToken;
-            Eat(TokenType.Plus);
+
+            if (op.Type == TokenType.Plus)
+                Eat(TokenType.Plus);
+            else
+                Eat(TokenType.Minus);
 
             Token right = currentToken;
             Eat(TokenType.Int);
 
-            int result = (int)left.Value + (int)right.Value;
+            int result;
+            if (op.Type == TokenType.Plus)
+                result = (int)left.Value + (int)right.Value;
+            else
+                result = (int)left.Value - (int)right.Value;
+
             return result;
         }
     }
