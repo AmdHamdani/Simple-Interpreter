@@ -7,6 +7,7 @@
         private int pos;
         private Token currentToken;
         private char currentChar;
+
         public Interpreter(string text)
         {
             this.text = text;
@@ -14,6 +15,7 @@
             currentChar = text[pos];
         }
 
+        #region Lexer Code
         public void Error()
         {
             throw new System.Exception("Error parsing input");
@@ -83,7 +85,9 @@
 
             return new Token(TokenType.EOF, null);
         }
+        #endregion
 
+        #region Parser / Interpreter Code
         public void Eat(TokenType type)
         {
             if (currentToken.Type == type)
@@ -96,30 +100,36 @@
             }
         }
 
+        public int Term()
+        {
+            Token token = currentToken;
+            Eat(TokenType.Int);
+            return (int)token.Value;
+        }
+
         public int Expr()
         {
             currentToken = GetNextToken();
 
-            Token left = currentToken;
-            Eat(TokenType.Int);
-
-            Token op = currentToken;
-
-            if (op.Type == TokenType.Plus)
-                Eat(TokenType.Plus);
-            else
-                Eat(TokenType.Minus);
-
-            Token right = currentToken;
-            Eat(TokenType.Int);
-
-            int result;
-            if (op.Type == TokenType.Plus)
-                result = (int)left.Value + (int)right.Value;
-            else
-                result = (int)left.Value - (int)right.Value;
+            int result = Term();
+            while (currentToken.Type == TokenType.Plus || currentToken.Type == TokenType.Minus)
+            {
+                Token token = currentToken;
+                switch (token.Type)
+                {
+                    case TokenType.Plus:
+                        Eat(TokenType.Plus);
+                        result += Term();
+                        break;
+                    case TokenType.Minus:
+                        Eat(TokenType.Minus);
+                        result -= Term();
+                        break;
+                }
+            }
 
             return result;
         }
+        #endregion
     }
 }
