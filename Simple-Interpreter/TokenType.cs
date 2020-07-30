@@ -9,6 +9,8 @@ namespace Simple_Interpreter
         Int,
         Plus,
         Minus,
+        Mul,
+        Div,
         EOF
     }
 }
