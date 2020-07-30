@@ -10,7 +10,8 @@ namespace Simple_Interpreter
             {
                 Console.Write("Calc > ");
                 string text = Console.ReadLine();
-                Interpreter interpreter = new Interpreter(text);
+                Lexer lexer = new Lexer(text);
+                Interpreter interpreter = new Interpreter(lexer);
                 int result = interpreter.Expr();
                 Console.WriteLine(result);
             }

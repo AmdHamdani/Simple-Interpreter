@@ -3,101 +3,37 @@
     class Interpreter
     {
 
-        private string text;
-        private int pos;
+        private Lexer lexer;
         private Token currentToken;
-        private char currentChar;
 
-        public Interpreter(string text)
+        public Interpreter(Lexer lexer)
         {
-            this.text = text;
-            pos = 0;
-            currentChar = text[pos];
+            this.lexer = lexer;
+            currentToken = lexer.GetNextToken();
         }
 
-        #region Lexer Code
         public void Error()
         {
-            throw new System.Exception("Error parsing input");
+            throw new System.Exception("Invalid Syntax");
         }
 
-        public void Advance()
-        {
-            pos++;
-            if (pos > text.Length - 1)
-            {
-                currentChar = '\0';
-            }
-            else
-            {
-                currentChar = text[pos];
-            }
-        }
-
-        public void SkipWhiteSpace()
-        {
-            while (currentChar != '\0' && char.IsWhiteSpace(currentChar))
-            {
-                Advance();
-            }
-        }
-
-        public int Integer()
-        {
-            string result = string.Empty;
-            while (currentChar != '\0' && char.IsDigit(currentChar))
-            {
-                result += currentChar;
-                Advance();
-            }
-            return int.Parse(result);
-        }
-
-        public Token GetNextToken()
-        {
-            while (currentChar != '\0')
-            {
-                if (char.IsWhiteSpace(currentChar))
-                {
-                    SkipWhiteSpace();
-                    continue;
-                }
-
-                if (char.IsDigit(currentChar))
-                {
-                    return new Token(TokenType.Int, Integer());
-                }
-
-                if (currentChar == '+')
-                {
-                    Advance();
-                    return new Token(TokenType.Plus, '+');
-                }
-
-                if (currentChar == '-')
-                {
-                    Advance();
-                    return new Token(TokenType.Minus, '-');
-                }
-
-                Error();
-            }
-
-            return new Token(TokenType.EOF, null);
-        }
-        #endregion
-
-        #region Parser / Interpreter Code
         public void Eat(TokenType type)
         {
             if (currentToken.Type == type)
             {
-                currentToken = GetNextToken();
+                currentToken = lexer.GetNextToken();
             }
             else
             {
                 Error();
             }
+        }
+
+        public int Factor()
+        {
+            Token token = currentToken;
+            Eat(TokenType.Int);
+            return (int)token.Value;
         }
 
         public int Term()
@@ -109,10 +45,9 @@
 
         public int Expr()
         {
-            currentToken = GetNextToken();
+            int result = Factor();
 
-            int result = Term();
-            while (currentToken.Type == TokenType.Plus || currentToken.Type == TokenType.Minus)
+            while (currentToken.Type == TokenType.Plus || currentToken.Type == TokenType.Minus || currentToken.Type == TokenType.Mul || currentToken.Type == TokenType.Div)
             {
                 Token token = currentToken;
                 switch (token.Type)
@@ -125,11 +60,18 @@
                         Eat(TokenType.Minus);
                         result -= Term();
                         break;
+                    case TokenType.Mul:
+                        Eat(TokenType.Mul);
+                        result *= Factor();
+                        break;
+                    case TokenType.Div:
+                        Eat(TokenType.Div);
+                        result /= Factor();
+                        break;
                 }
             }
 
             return result;
         }
-        #endregion
     }
 }
