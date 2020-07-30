@@ -38,16 +38,29 @@
 
         public int Term()
         {
-            Token token = currentToken;
-            Eat(TokenType.Int);
-            return (int)token.Value;
+            int result = Factor();
+
+            while(currentToken.Type == TokenType.Mul || currentToken.Type == TokenType.Div)
+            {
+                Token token = currentToken;
+                if(token.Type == TokenType.Mul)
+                {
+                    Eat(TokenType.Mul);
+                    result *= Factor();
+                } else if (token.Type == TokenType.Div) {
+                    Eat(TokenType.Div);
+                    result /= Factor(); 
+                }
+            }
+
+            return result;
         }
 
         public int Expr()
         {
             int result = Factor();
 
-            while (currentToken.Type == TokenType.Plus || currentToken.Type == TokenType.Minus || currentToken.Type == TokenType.Mul || currentToken.Type == TokenType.Div)
+            while (currentToken.Type == TokenType.Plus || currentToken.Type == TokenType.Minus)
             {
                 Token token = currentToken;
                 switch (token.Type)
@@ -59,14 +72,6 @@
                     case TokenType.Minus:
                         Eat(TokenType.Minus);
                         result -= Term();
-                        break;
-                    case TokenType.Mul:
-                        Eat(TokenType.Mul);
-                        result *= Factor();
-                        break;
-                    case TokenType.Div:
-                        Eat(TokenType.Div);
-                        result /= Factor();
                         break;
                 }
             }
