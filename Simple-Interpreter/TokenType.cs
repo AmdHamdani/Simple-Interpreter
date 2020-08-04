@@ -11,6 +11,8 @@ namespace Simple_Interpreter
         Minus,
         Mul,
         Div,
+        LParen,
+        RParen,
         EOF
     }
 }
