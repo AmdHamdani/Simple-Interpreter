@@ -1,4 +1,6 @@
-﻿namespace Simple_Interpreter
+﻿using System.Runtime.InteropServices;
+
+namespace Simple_Interpreter
 {
     class Interpreter
     {
@@ -32,24 +34,40 @@
         public int Factor()
         {
             Token token = currentToken;
-            Eat(TokenType.Int);
-            return (int)token.Value;
+            int result = 0;
+
+            if (token.Type == TokenType.Int)
+            {
+                Eat(TokenType.Int);
+                return (int)token.Value;
+            }
+            else if (token.Type == TokenType.LParen)
+            {
+                Eat(TokenType.LParen);
+                result = Expr();
+                Eat(TokenType.RParen);
+                return result;
+            }
+
+            return result;
         }
 
         public int Term()
         {
             int result = Factor();
 
-            while(currentToken.Type == TokenType.Mul || currentToken.Type == TokenType.Div)
+            while (currentToken.Type == TokenType.Mul || currentToken.Type == TokenType.Div)
             {
                 Token token = currentToken;
-                if(token.Type == TokenType.Mul)
+                if (token.Type == TokenType.Mul)
                 {
                     Eat(TokenType.Mul);
                     result *= Factor();
-                } else if (token.Type == TokenType.Div) {
+                }
+                else if (token.Type == TokenType.Div)
+                {
                     Eat(TokenType.Div);
-                    result /= Factor(); 
+                    result /= Factor();
                 }
             }
 
@@ -58,7 +76,7 @@
 
         public int Expr()
         {
-            int result = Factor();
+            int result = Term();
 
             while (currentToken.Type == TokenType.Plus || currentToken.Type == TokenType.Minus)
             {
