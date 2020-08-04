@@ -89,6 +89,18 @@
                     return new Token(TokenType.Div, '/');
                 }
 
+                if(currentChar == '(')
+                {
+                    Advance();
+                    return new Token(TokenType.LParen, '(');
+                }
+
+                if(currentChar == ')')
+                {
+                    Advance();
+                    return new Token(TokenType.RParen, ')');
+                }
+
                 Error();
             }
 
